@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout CLI repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Download release artifacts
       run: |
@@ -30,13 +30,15 @@ jobs:
         echo "linux_amd64=$(sha256sum dist/exc-linux-amd64.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
 
     - name: Checkout Homebrew Tap repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: excloud-in/homebrew-excloud
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_TOKEN }}
+        path: homebrew-tap
 
     - name: Update Homebrew formula
       run: |
+        cd hombrew-tap
         sed -i "s/^  version \".*\"$/  version \"${{ github.event.release.tag_name }}\"/" exc.rb
         sed -i "s|^      url \".*-darwin-arm64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-arm64.tar.gz\"|" exc.rb
         sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.darwin_arm64 }}\"|" exc.rb

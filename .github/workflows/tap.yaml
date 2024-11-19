@@ -41,14 +41,18 @@ jobs:
     - name: Update Homebrew formula
       run: |
         sed -i "s/^  version \".*\"$/  version \"${{ github.event.release.tag_name }}\"/" exc.rb
-        sed -i "s|^      url \".*-darwin-arm64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-arm64.tar.gz\"|" exc.rb
-        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.darwin_arm64 }}\"|" exc.rb
-        sed -i "s|^      url \".*-darwin-amd64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-amd64.tar.gz\"|" exc.rb
-        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.darwin_amd64 }}\"|" exc.rb
-        sed -i "s|^      url \".*-linux-arm64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-arm64.tar.gz\"|" exc.rb
-        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.linux_arm64 }}\"|" exc.rb
-        sed -i "s|^      url \".*-linux-amd64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-amd64.tar.gz\"|" exc.rb
-        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.linux_amd64 }}\"|" exc.rb
+
+        sed -i "/darwin-arm64.tar.gz/{n;s/sha256 \".*\"/sha256 \"${{ env.darwin_arm64 }}\"/}" exc.rb
+        sed -i "/darwin-arm64.tar.gz/s|url \".*\"|url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-arm64.tar.gz\"|" exc.rb
+
+        sed -i "/darwin-amd64.tar.gz/{n;s/sha256 \".*\"/sha256 \"${{ env.darwin_amd64 }}\"/}" exc.rb
+        sed -i "/darwin-amd64.tar.gz/s|url \".*\"|url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-amd64.tar.gz\"|" exc.rb
+
+        sed -i "/linux-arm64.tar.gz/{n;s/sha256 \".*\"/sha256 \"${{ env.linux_arm64 }}\"/}" exc.rb
+        sed -i "/linux-arm64.tar.gz/s|url \".*\"|url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-arm64.tar.gz\"|" exc.rb
+
+        sed -i "/linux-amd64.tar.gz/{n;s/sha256 \".*\"/sha256 \"${{ env.linux_amd64 }}\"/}" exc.rb
+        sed -i "/linux-amd64.tar.gz/s|url \".*\"|url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-amd64.tar.gz\"|" exc.rb
 
     - name: Commit and push changes
       run: |

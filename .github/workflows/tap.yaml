@@ -34,11 +34,9 @@ jobs:
       with:
         repository: excloud-in/homebrew-excloud
         token: ${{ secrets.GH_TOKEN }}
-        path: homebrew-tap
 
     - name: Update Homebrew formula
       run: |
-        cd hombrew-tap
         sed -i "s/^  version \".*\"$/  version \"${{ github.event.release.tag_name }}\"/" exc.rb
         sed -i "s|^      url \".*-darwin-arm64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-arm64.tar.gz\"|" exc.rb
         sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.darwin_arm64 }}\"|" exc.rb

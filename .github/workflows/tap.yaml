@@ -1,0 +1,57 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  update-homebrew:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout CLI repo
+      uses: actions/checkout@v3
+
+    - name: Download release artifacts
+      run: |
+        mkdir -p dist
+        wget -qO dist/exc-darwin-arm64.tar.gz "https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-arm64.tar.gz"
+        wget -qO dist/exc-darwin-amd64.tar.gz "https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-amd64.tar.gz"
+        wget -qO dist/exc-linux-arm64.tar.gz "https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-arm64.tar.gz"
+        wget -qO dist/exc-linux-amd64.tar.gz "https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-amd64.tar.gz"
+
+    - name: Calculate SHA256 checksums
+      id: checksums
+      run: |
+        echo "darwin_arm64=$(sha256sum dist/exc-darwin-arm64.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
+        echo "darwin_amd64=$(sha256sum dist/exc-darwin-amd64.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
+        echo "linux_arm64=$(sha256sum dist/exc-linux-arm64.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
+        echo "linux_amd64=$(sha256sum dist/exc-linux-amd64.tar.gz | awk '{print $1}')" >> $GITHUB_ENV
+
+    - name: Checkout Homebrew Tap repo
+      uses: actions/checkout@v3
+      with:
+        repository: excloud-in/homebrew-excloud
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update Homebrew formula
+      run: |
+        sed -i "s/^  version \".*\"$/  version \"${{ github.event.release.tag_name }}\"/" exc.rb
+        sed -i "s|^      url \".*-darwin-arm64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-arm64.tar.gz\"|" exc.rb
+        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.darwin_arm64 }}\"|" exc.rb
+        sed -i "s|^      url \".*-darwin-amd64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-darwin-amd64.tar.gz\"|" exc.rb
+        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.darwin_amd64 }}\"|" exc.rb
+        sed -i "s|^      url \".*-linux-arm64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-arm64.tar.gz\"|" exc.rb
+        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.linux_arm64 }}\"|" exc.rb
+        sed -i "s|^      url \".*-linux-amd64.tar.gz\"|      url \"https://github.com/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/exc-linux-amd64.tar.gz\"|" exc.rb
+        sed -i "s|^      sha256 \".*\"$|      sha256 \"${{ env.linux_amd64 }}\"|" exc.rb
+
+    - name: Commit and push changes
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add exc.rb
+        git commit -m "Update Homebrew formula for version ${{ github.event.release.tag_name }}"
+        git push
+
